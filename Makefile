@@ -17,4 +17,4 @@ run: main
 	./main
 
 clean:
-	rm obj/*.o $(EXEC)
+	rm obj/*.o $(EXEC) src/~* src/#*# inc/~* inc/#*#
