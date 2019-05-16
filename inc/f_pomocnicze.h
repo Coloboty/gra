@@ -6,6 +6,13 @@
 
 using namespace sf;
 
+/* FUNKCJE -------------------------------------------------------- */
+
+/* Liczy odległość między dwoma punktami */
+float vDistance(Vector2f v1, Vector2f v2);
+
+/* KLASY ---------------------------------------------------------- */
+
 class LineShape : public Drawable{
 public:
     LineShape(const Vector2f &point1, const Vector2f &point2, uint thick, const Color &col)
