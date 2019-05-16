@@ -1,34 +1,40 @@
 #include "plansza.h"
 
-board::board(const Vector2f &gridSize, const Vector2f &screenSize){
-    grid_size= gridSize;
+board::board(const Vector2u &gridSize, const Vector2f &screenSize){
+    grid_size.x= gridSize.x-1;
+    grid_size.y= gridSize.y-1;
     screen_size= screenSize;
-    state= new uint[((int)grid_size.x-1) * ((int)grid_size.y-1)];
     grid_color= Color(150, 150, 150);
     board_color= Color(220, 220, 220);
     grid_thickness= 2;
+
+    uint grids= gridSize.x*gridSize.y;
+    grid= new dot[grids];
+
+    /* for(uint i=0; i < grids; i++) */
+	/* grid[i]= 0; */
     
     /* Policz odległość między granicami kratek */
-    grid_spacing= Vector2f(screen_size.x/grid_size.x, screen_size.y/grid_size.y);
+    grid_spacing= Vector2f(screen_size.x/gridSize.x, screen_size.y/gridSize.y);
     Vector2f pos= getPosition();
 
     /* Rysuj kratki (bez brzegów) */
-    for(uint i= 1; i < grid_size.x; i++){
-	grid.push_back(LineShape(Vector2f(grid_spacing.x*i+pos.x, pos.y), Vector2f(grid_spacing.x*i+pos.x, screen_size.y+pos.y), grid_thickness, grid_color));
+    for(uint i= 1; i < gridSize.x; i++){
+	grid_lines.push_back(LineShape(Vector2f(grid_spacing.x*i+pos.x, pos.y), Vector2f(grid_spacing.x*i+pos.x, screen_size.y+pos.y), grid_thickness, grid_color));
     }
 
-    for(uint i= 1; i < grid_size.y; i++){
-	grid.push_back(LineShape(Vector2f(pos.x, grid_spacing.y*i+pos.y), Vector2f(screen_size.x+pos.x, grid_spacing.y*i+pos.y), grid_thickness, grid_color));
+    for(uint i= 1; i < gridSize.y; i++){
+	grid_lines.push_back(LineShape(Vector2f(pos.x, grid_spacing.y*i+pos.y), Vector2f(screen_size.x+pos.x, grid_spacing.y*i+pos.y), grid_thickness, grid_color));
     }
 
     /* Rysuj brzegi osobno, trochę grubsze */
     uint border_thickness= grid_thickness*2+5;
     Color border_color(75, 75, 75);
 
-    grid.push_back(LineShape(Vector2f(pos.x, pos.y), Vector2f(pos.x, screen_size.y+pos.y), border_thickness, border_color));
-    grid.push_back(LineShape(Vector2f(screen_size.x+pos.x, pos.y), Vector2f(screen_size.x+pos.x, screen_size.y+pos.y), border_thickness, border_color));
-    grid.push_back(LineShape(Vector2f(pos.x, pos.y), Vector2f(screen_size.x+pos.x, pos.y), border_thickness, border_color));
-    grid.push_back(LineShape(Vector2f(pos.x, screen_size.y+pos.y), Vector2f(screen_size.x+pos.x, screen_size.y+pos.y), border_thickness, border_color));
+    grid_lines.push_back(LineShape(Vector2f(pos.x, pos.y), Vector2f(pos.x, screen_size.y+pos.y), border_thickness, border_color));
+    grid_lines.push_back(LineShape(Vector2f(screen_size.x+pos.x, pos.y), Vector2f(screen_size.x+pos.x, screen_size.y+pos.y), border_thickness, border_color));
+    grid_lines.push_back(LineShape(Vector2f(pos.x, pos.y), Vector2f(screen_size.x+pos.x, pos.y), border_thickness, border_color));
+    grid_lines.push_back(LineShape(Vector2f(pos.x, screen_size.y+pos.y), Vector2f(screen_size.x+pos.x, screen_size.y+pos.y), border_thickness, border_color));
 }
 
 /* Bierze pozycję na ekranie i zwraca wektor najbliższego przecięcia linii */

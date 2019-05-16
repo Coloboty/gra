@@ -1,29 +1,29 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
 #include <memory>
+#include <vector>
+#include "config.h"
 #include "f_pomocnicze.h"
 #include "plansza.h"
-
-#define SCREEN_WIDTH 400
-#define SCREEN_HEIGHT 400
-
-#define BOARD_SIZE_X 10
-#define BOARD_SIZE_Y 10
+#include "union_find.hpp"
 
 using namespace sf;
 using namespace std;
 
-enum player{BLUE, RED};
+/* enum player{BLUE, RED}; */
+
 
 int main()
 {
     RenderWindow window(VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "wadowice");
-    board plansza(Vector2f(BOARD_SIZE_X, BOARD_SIZE_Y), Vector2f(SCREEN_WIDTH, SCREEN_HEIGHT));
+    board plansza(Vector2u(BOARD_SIZE_X, BOARD_SIZE_Y), Vector2f(SCREEN_WIDTH, SCREEN_HEIGHT));
     Font czcionka;
     Text tekst, snap, indeks;
-    CircleShape kropka(11);
-    Vector2i mysz, ind;
+    CircleShape kropka(DOT_RADIUS);
+    Vector2i mysz;
+    Vector2u ind;
     Vector2f smysz;
+    union_find<uint> las;
     
     if(!czcionka.loadFromFile("assets/LinLibertine.ttf")){
 	cout << "NIE WCZYTANO CZCIONKI" << endl;
@@ -58,9 +58,26 @@ int main()
             if (event.type == Event::Closed)
                 window.close();
 
-	    if(event.type == Event::KeyReleased)
+	    if(event.type == Event::KeyReleased){
 		if(event.key.code == Keyboard::Escape)
 		    window.close();
+		
+		if(event.key.code == Keyboard::Return)
+		    plansza.addDot(1, ind);
+		
+		if(event.key.code == Keyboard::E){
+		    if(plansza.doesExist(ind))
+			cout << "Kropka" << endl;
+		    else
+			cout << "Brak kropki" << endl;
+		}
+
+		if(event.key.code == Keyboard::I)
+		    cout << "Id kropki:" << plansza.getDotId(ind) << endl;
+
+		if(event.key.code == Keyboard::G)
+		    cout << "Id kropki:" << plansza.getDotGroup(ind) << endl;
+	    }
         }
 
 	mysz= Mouse::getPosition(window);

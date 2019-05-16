@@ -7,13 +7,13 @@ CFLAGS= -Iinc -Wall -pedantic
 $(EXEC): obj/main.o obj/f_pomocnicze.o obj/plansza.o
 	g++ -o main obj/main.o obj/f_pomocnicze.o obj/plansza.o ${SFML}
 
-obj/main.o: src/main.cpp inc/f_pomocnicze.h inc/plansza.h
+obj/main.o: src/main.cpp inc/f_pomocnicze.h inc/plansza.h inc/union_find.hpp inc/config.h
 	g++ -c src/main.cpp -o obj/main.o $(CFLAGS)
 
 obj/f_pomocnicze.o: src/f_pomocnicze.cpp inc/f_pomocnicze.h
 	g++ -c src/f_pomocnicze.cpp -o obj/f_pomocnicze.o $(CFLAGS)
 
-obj/plansza.o: src/plansza.cpp inc/plansza.h inc/f_pomocnicze.h
+obj/plansza.o: src/plansza.cpp inc/plansza.h inc/f_pomocnicze.h inc/config.h inc/union_find.hpp
 	g++ -c src/plansza.cpp -o obj/plansza.o $(CFLAGS)
 
 run: main
