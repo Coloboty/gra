@@ -3,9 +3,10 @@
 
 #include <SFML/Graphics.hpp>
 #include <iostream>
+#include <stack>
 #include "config.h"
 #include "f_pomocnicze.h"
-#include "union_find.hpp"
+/* #include "union_find.hpp" */
 
 using namespace std;
 using namespace sf;
@@ -21,16 +22,16 @@ class board : public Drawable, public Transformable{
 
     struct dot{
 	bool exists;
-	uint id;
+	Vector2u index;
 	uint player;
-    dot(uint _id, uint _player): exists(true), id(_id), player(_player) {}
-    dot(): exists(false), id(0), player(0) {}
+    dot(Vector2u _index, uint _player): exists(true), index(_index), player(_player) {}
+    dot(): exists(false) {}
     };
     
     dot *grid;
+    vector<dot*> *neighbours;
     vector<CircleShape> dot_shapes;
-    union_find<uint> graph;
-
+    
     virtual void draw(RenderTarget &target, RenderStates states) const{
 	RectangleShape background(screen_size);
 	background.setPosition(getPosition());
@@ -44,33 +45,27 @@ class board : public Drawable, public Transformable{
 	    target.draw(dot_shapes[i], states);
     }
 
-    void setGridState(dot state, Vector2u coords) {grid[coords.x + (uint)grid_size.y*coords.y]= state;}
-    dot getGridState(Vector2u coords) {return grid[coords.x + (uint)grid_size.y*coords.y];}
+    void setGridState(dot state, Vector2u index) {grid[index.x + (uint)grid_size.y*index.y]= state;}
+    dot &getGridState(Vector2u index) {return grid[index.x + (uint)grid_size.y*index.y];}
+    void addNeighbour(dot *neighbour, Vector2u index) {neighbours[index.x + (uint)grid_size.y*index.y].push_back(neighbour);}
+    vector<dot*> &getNeighbourList(Vector2u index) {return neighbours[index.x + (uint)grid_size.y*index.y];}
     
 public:
     board(const Vector2u &gridSize, const Vector2f &screenSize);
-
     ~board(){
-	delete grid;
+	delete[] grid;
+	delete[] neighbours;
     }
 
     Vector2f snapToGrid(Vector2i coords);
-
-    /* Bierze pozycję przecięcia ekranu i zwraca indeks w macierzy */
-    Vector2u getGridIndex(Vector2f coords){
-	Vector2u result;
-	result.x= coords.x/grid_spacing.x - 1;
-	result.y= coords.y/grid_spacing.y - 1;
-	return result;
-    }
-
-    Vector2f getGridCoords(Vector2u index){
-	Vector2f result;
-	result.x= index.x*grid_spacing.x + grid_spacing.x;
-	result.y= index.y*grid_spacing.y + grid_spacing.y;
-	return result;
-    }
-
+    Vector2u getGridIndex(Vector2f coords);
+    Vector2f getGridCoords(Vector2u index);
+    bool doesExist(Vector2u index) {return getGridState(index).exists;}
+    /* uint getDotId(Vector2u index) {return getGridState(index).id;} */
+    /* uint getDotGroup(Vector2u index) {return graph.find(getGridState(index).id);} */
+    Vector2u getDotIndex(Vector2u index) {return getGridState(index).index;}
+    void *getDotAddress(Vector2u index) {return &getGridState(index);}
+    
     bool isValidMove(uint player, Vector2u index){
 	if(index.x > grid_size.x || index.y > grid_size.y)
 	    return false;
@@ -82,27 +77,30 @@ public:
 	return true;
     }
 
-    bool doesExist(Vector2u index) {return getGridState(index).exists;}
-    uint getDotId(Vector2u index) {return getGridState(index).id;}
-    uint getDotGroup(Vector2u index) {return graph.find(getGridState(index).id);}
+    void listNeighbours(Vector2u index){
+	vector<dot*> list= getNeighbourList(index);
+
+	cout << "Sąsiedzi:" << endl;
+	for(uint i= 0; i < list.size(); i++)
+	    cout << "Sąsiad " << i << "- X: " << list[i]->index.x << "  Y: " << list[i]->index.y << endl;
+    }
     
     bool addDot(uint player, Vector2u index){
-	Vector2f coords;
-	dot new_dot, search_dot;
+	/* Sprawdź, czy ruch jest dozwolony */
 	if(!isValidMove(player, index))
 	   return false;
 
-	coords= getGridCoords(index);
-
+	/* Dodaj graficzną reprezentację do listy rzeczy do wyświetlania */
+	Vector2f coords= getGridCoords(index);
 	dot_shapes.push_back(CircleShape(DOT_RADIUS));
 	dot_shapes.back().setFillColor(Color::Red);
 	dot_shapes.back().setPosition(coords.x-DOT_RADIUS, coords.y-DOT_RADIUS);
-	new_dot.exists= true;
-	new_dot.player= player;
-	new_dot.id= graph.makeSet(0);
 	
-	setGridState(new_dot, index);
+	/* Ustaw odpowiednie wartości w tabeli stanu */
+	setGridState(dot(index, player), index);
+	cout << "Dodano kropkę" << endl;
 
+	/* Przygotowanie do szukania sąsiadów */
 	int xstart, xstop, ystart, ystop;
 	if(index.x > 0) xstart= -1;
 	else xstart= 0;
@@ -115,24 +113,94 @@ public:
 
 	if(index.y < grid_size.y) ystop= 1;
 	else ystop= 0;
-	    
+
+	/* Szukanie sąsiadów w obrębie jednej kratki */
+	dot *search_dot;
+	Vector2u search_index;
+	bool neighbour_flag= false;
 	for(int i= xstart; i <= xstop; i++){
 	    for(int j= ystart; j <= ystop; j++){
-		search_dot= getGridState(Vector2u(index.x+i, index.y+j));
-		/* cout << index.x+i << "   " << index.y+j << endl; */
-		if(search_dot.exists){
-		    if(graph.find(new_dot.id) ==  graph.find(search_dot.id))
-			if(!(i == 0 && j == 0))
-			    cout << "Cycle detected" << endl;
-		    graph.join(search_dot.id, new_dot.id);
+		search_index= Vector2u(index.x+i, index.y+j);
+		search_dot= &getGridState(search_index);
+		
+		if(search_dot->exists){
+		    if(!(i == 0 && j == 0)){
+			neighbour_flag= true;
+			addNeighbour(search_dot, index);
+			addNeighbour(&getGridState(index), search_index);
+			/* cout << "Znaleziono sąsiada: " << search_dot << endl; */
+		    }
 		}
 	    }
 	}
 
-	/* cout <<  << endl; */
+	/* Jeśli znaleziono sąsiada przeprowadź detekcję cyklu */
+	if(neighbour_flag){
+	    /* depthSearch(index); */
+	}
 	
 	return true;
     }
+
+    bool depthSearch(Vector2u index){
+	dot *start= &getGridState(index);
+	vector<dot*> neighbours;
+	dot *current;
+	bool *visited;
+	bool away= false;
+
+	/* Inicjalizacja */
+	
+	visited= new bool[grid_size.x*grid_size.y];
+	for(uint i= 0; i < grid_size.x*grid_size.y; i++){
+	    visited[i]= false;
+	}
+
+	/* Bierzemy pierwszego sąsiada punku początkowego */
+	stack<dot*> unvisited;
+	unvisited.push(getNeighbourList(index)[0]);
+
+	cout << "Początek przeszukiwania" << endl;
+
+	/* Póki są jeszcze miejsca nieodwiedzone */
+	while(!unvisited.empty()){
+	    /* Zdejmij punkt ze stosu */
+	    current= unvisited.top();
+	    unvisited.pop();
+	    /* Zaznacz jako odwiedzony */
+	    visited[current->index.x + current->index.y*grid_size.y]= true;
+	    cout << "Odwiedzam ";
+	    cout << "X: " << current->index.x << "  Y: " << current->index.y << endl;
+
+	    /* Znajdź wszystkich jego sąsiadów */
+	    neighbours= getNeighbourList(current->index);
+	    for(uint i= 0; i < neighbours.size(); i++){
+		/* Jeżeli sąsiad jeszcze nie był odwiedzony */
+		if(!visited[neighbours[i]->index.x + neighbours[i]->index.y*grid_size.y]){
+		    /* Jeżeli sąsiadem jest punkt początkowy */
+		    if(neighbours[i] == start){
+			if(!away)
+			    /* Jeśli to pierwszy przebieg, zignoruj */
+			    away= true;
+			else{
+			    /* Jeśli nie, to właśnie zrobiłeś kółko (dobra robota) */
+			    cout << "Znaleziono cykl!" << endl;
+			    return true;
+			}
+		    }
+		    else
+			/* Wepchnij nieodwiedzonego sąsiada na stos punktów do odwiedzenia */
+			unvisited.push(neighbours[i]);
+		}
+	    }
+	    
+	}
+
+	delete[] visited;
+	return false;
+    }
 };
+
+
 
 #endif

@@ -12,7 +12,6 @@ using namespace std;
 
 /* enum player{BLUE, RED}; */
 
-
 int main()
 {
     RenderWindow window(VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "wadowice");
@@ -72,11 +71,17 @@ int main()
 			cout << "Brak kropki" << endl;
 		}
 
-		if(event.key.code == Keyboard::I)
-		    cout << "Id kropki:" << plansza.getDotId(ind) << endl;
+		if(event.key.code == Keyboard::S)
+		    plansza.listNeighbours(ind);
 
-		if(event.key.code == Keyboard::G)
-		    cout << "Id kropki:" << plansza.getDotGroup(ind) << endl;
+		if(event.key.code == Keyboard::D)
+		    plansza.depthSearch(ind);
+
+		if(event.key.code == Keyboard::A)
+		    cout << plansza.getDotAddress(ind) << endl;
+
+		if(event.key.code == Keyboard::I)
+		    cout << "X: " << plansza.getDotIndex(ind).x << "  Y: " << plansza.getDotIndex(ind).y << endl;
 	    }
         }
 

@@ -10,6 +10,7 @@ board::board(const Vector2u &gridSize, const Vector2f &screenSize){
 
     uint grids= gridSize.x*gridSize.y;
     grid= new dot[grids];
+    neighbours= new vector<dot*>[grids];
 
     /* for(uint i=0; i < grids; i++) */
 	/* grid[i]= 0; */
@@ -72,5 +73,20 @@ Vector2f board::snapToGrid(Vector2i coords){
     if(result.y < grid_spacing.y)
 	result.y= grid_spacing.y;
 	
+    return result;
+}
+
+/* Bierze pozycję przecięcia ekranu i zwraca indeks w macierzy */
+Vector2u board::getGridIndex(Vector2f coords){
+    Vector2u result;
+    result.x= coords.x/grid_spacing.x - 1;
+    result.y= coords.y/grid_spacing.y - 1;
+    return result;
+}
+
+Vector2f board::getGridCoords(Vector2u index){
+    Vector2f result;
+    result.x= index.x*grid_spacing.x + grid_spacing.x;
+    result.y= index.y*grid_spacing.y + grid_spacing.y;
     return result;
 }
