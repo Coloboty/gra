@@ -7,6 +7,12 @@
 #define BOARD_SIZE_X 10
 #define BOARD_SIZE_Y 10
 
-#define DOT_RADIUS 10
+#define DOT_RADIUS 15
+
+#define WIN_CONDITION 4
+
+#define P1_COLOR Color::Red
+#define P2_COLOR Color::Blue
+
 
 #endif

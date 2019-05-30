@@ -10,45 +10,31 @@
 using namespace sf;
 using namespace std;
 
-/* enum player{BLUE, RED}; */
+void twoPlayerMode(void);
 
 int main()
 {
+    twoPlayerMode();
+
+    return 0;
+}
+
+void twoPlayerMode(void){
     RenderWindow window(VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "wadowice");
-    board plansza(Vector2u(BOARD_SIZE_X, BOARD_SIZE_Y), Vector2f(SCREEN_WIDTH, SCREEN_HEIGHT));
-    Font czcionka;
-    Text tekst, snap, indeks;
+    board plansza(Vector2f(SCREEN_WIDTH, SCREEN_HEIGHT));
     CircleShape kropka(DOT_RADIUS);
-    Vector2i mysz;
-    Vector2u ind;
-    Vector2f smysz;
-    union_find<uint> las;
+    Color p1_ghost, p2_ghost;
+    bool debug;
+    Vector2u ind, dodana;
+    uint gracz= 1;
+
+    p1_ghost= P1_COLOR;
+    p1_ghost.a= 150;
+    p2_ghost= P2_COLOR;
+    p2_ghost.a= 150;
+
+    kropka.setFillColor(p1_ghost);
     
-    if(!czcionka.loadFromFile("assets/LinLibertine.ttf")){
-	cout << "NIE WCZYTANO CZCIONKI" << endl;
-	return 1;
-    }
-
-    tekst.setFont(czcionka);
-    tekst.setCharacterSize(24);
-    tekst.setFillColor(Color::Black);
-    tekst.setPosition(20, 10);
-
-    snap.setFont(czcionka);
-    snap.setCharacterSize(24);
-    snap.setString(to_string(2137));
-    snap.setFillColor(Color::Black);
-    snap.setPosition(20, 50);
-
-    indeks.setFont(czcionka);
-    indeks.setCharacterSize(24);
-    indeks.setString(to_string(2137));
-    indeks.setFillColor(Color::Black);
-    indeks.setPosition(20, 90);
-
-    /* kropka.setOrigin(5,5); */
-    kropka.setFillColor(Color(200, 150, 150));
-        
     while (window.isOpen())
     {
         Event event;
@@ -60,50 +46,71 @@ int main()
 	    if(event.type == Event::KeyReleased){
 		if(event.key.code == Keyboard::Escape)
 		    window.close();
-		
-		if(event.key.code == Keyboard::Return)
-		    plansza.addDot(1, ind);
-		
-		if(event.key.code == Keyboard::E){
-		    if(plansza.doesExist(ind))
-			cout << "Kropka" << endl;
-		    else
-			cout << "Brak kropki" << endl;
+
+		if(event.key.code == Keyboard::K){
+		    if(debug) debug= false;
+		    else debug= true;
 		}
 
-		if(event.key.code == Keyboard::S)
-		    plansza.listNeighbours(ind);
+		if(event.key.code == Keyboard::Right && ind.x < BOARD_SIZE_X-1)
+		    ind.x++;
+		
+		if(event.key.code == Keyboard::Left && ind.x > 0)
+		    ind.x--;
 
-		if(event.key.code == Keyboard::D)
-		    plansza.depthSearch(ind);
+		if(event.key.code == Keyboard::Down && ind.y < BOARD_SIZE_Y-1)
+		    ind.y++;
+		
+		if(event.key.code == Keyboard::Up && ind.y > 0)
+		    ind.y--;
 
-		if(event.key.code == Keyboard::A)
-		    cout << plansza.getDotAddress(ind) << endl;
+		if(!debug)
+		    ind.y= 0;
+		else{
 
-		if(event.key.code == Keyboard::I)
-		    cout << "X: " << plansza.getDotIndex(ind).x << "  Y: " << plansza.getDotIndex(ind).y << endl;
+		    if(event.key.code == Keyboard::C){
+			if(plansza.checkWin(ind))
+			    cout << "wygrana" << endl;
+			else
+			    cout << "brak" << endl;   
+		    }
+
+		    if(event.key.code == Keyboard::R)
+			plansza.addDot(1, ind.x);
+
+		    if(event.key.code == Keyboard::B)
+			plansza.addDot(2, ind.x);
+		}
+		
+		/* -------------- */
+		
+		if(event.key.code == Keyboard::Return){
+		    dodana= plansza.addDot(gracz, ind.x);
+		    if(plansza.checkWin(dodana)){
+			cout << "Gracz " << gracz << " wygrywa!" << endl;
+			window.close();
+		    }
+		    
+		    if(gracz == 1){
+			gracz= 2;
+			kropka.setFillColor(p2_ghost);
+		    }
+		    else{
+			gracz= 1;
+			kropka.setFillColor(p1_ghost);
+		    }
+		}
 	    }
         }
 
-	mysz= Mouse::getPosition(window);
-	smysz= plansza.snapToGrid(mysz);
-	ind= plansza.getGridIndex(smysz);
-	tekst.setString("X: " + to_string(mysz.x) + "   Y: " + to_string(mysz.y));
-	snap.setString("X: " + to_string(smysz.x) + "   Y: " + to_string(smysz.y));
-	indeks.setString("X: " + to_string(ind.x) + "   Y: " + to_string(ind.y));
-
-	kropka.setPosition(smysz.x-kropka.getRadius(), smysz.y-kropka.getRadius());
+	
+	kropka.setPosition(plansza.getGridCoords(ind).x-kropka.getRadius(), plansza.getGridCoords(ind).y-kropka.getRadius());
 		
         window.clear();
 	
 	window.draw(plansza);
-	window.draw(tekst);
-	window.draw(snap);
-	window.draw(indeks);
 	window.draw(kropka);
 	
         window.display();
     }
-
-    return 0;
 }
