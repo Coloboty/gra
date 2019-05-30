@@ -145,7 +145,7 @@ public:
     bool depthSearch(Vector2u index){
 	dot *start= &getGridState(index);
 	vector<dot*> neighbours;
-	dot *current;
+	dot *current, *previous;
 	bool *visited;
 	bool away= false;
 
@@ -156,10 +156,11 @@ public:
 	    visited[i]= false;
 	}
 
-	/* Bierzemy pierwszego sąsiada punku początkowego */
+	
 	stack<dot*> unvisited;
-	unvisited.push(getNeighbourList(index)[0]);
-
+	unvisited.push(start);
+	previous= start;
+	
 	cout << "Początek przeszukiwania" << endl;
 
 	/* Póki są jeszcze miejsca nieodwiedzone */
@@ -177,25 +178,25 @@ public:
 	    for(uint i= 0; i < neighbours.size(); i++){
 		/* Jeżeli sąsiad jeszcze nie był odwiedzony */
 		if(!visited[neighbours[i]->index.x + neighbours[i]->index.y*grid_size.y]){
-		    /* Jeżeli sąsiadem jest punkt początkowy */
-		    if(neighbours[i] == start){
-			if(!away)
-			    /* Jeśli to pierwszy przebieg, zignoruj */
-			    away= true;
-			else{
-			    /* Jeśli nie, to właśnie zrobiłeś kółko (dobra robota) */
+		    /* Wepchnij nieodwiedzonego sąsiada na stos punktów do odwiedzenia */
+		    unvisited.push(neighbours[i]);
+		}
+		/* Jeśli sąsiad już był odwiedzony */
+		else{
+		    /* Jeśli nie jest to poprzednio odwiedzony punkt */
+		    if(neighbours[i] != previous){
+			/* Jeżeli sąsiadem jest punkt początkowy */
+			if(neighbours[i] == start){
 			    cout << "Znaleziono cykl!" << endl;
 			    return true;
 			}
 		    }
-		    else
-			/* Wepchnij nieodwiedzonego sąsiada na stos punktów do odwiedzenia */
-			unvisited.push(neighbours[i]);
 		}
-	    }
+	    } /* KONIEC PĘTLI FOR */
 	    
+	    previous= current;
 	}
-
+	
 	delete[] visited;
 	return false;
     }
