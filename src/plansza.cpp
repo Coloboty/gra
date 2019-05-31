@@ -1,9 +1,9 @@
 #include "plansza.h"
 
-board::board(const Vector2f &screenSize){
+board::board(){
     grid_size.x= BOARD_SIZE_X-1;
     grid_size.y= BOARD_SIZE_Y-1;
-    screen_size= screenSize;
+    screen_size= Vector2f(SCREEN_WIDTH, SCREEN_HEIGHT);
     grid_color= Color(150, 150, 150);
     board_color= Color(220, 220, 220);
     grid_thickness= 2;
@@ -39,4 +39,23 @@ Vector2f board::getGridCoords(Vector2u index){
     result.x= index.x*grid_spacing.x + grid_spacing.x/2;
     result.y= index.y*grid_spacing.y + grid_spacing.y/2;
     return result;
+}
+
+Vector2u board::addDot(uint player, uint row){
+    Vector2u index= state.addDot(player, row);
+    /* Sprawdź, czy ruch jest dozwolony */
+    if(!state.isValidMove(index.x))
+	/* return Vector2u(BOARD_SIZE_X, BOARD_SIZE_Y); */
+	return Vector2u(-1, -1);
+	
+    /* Dodaj graficzną reprezentację do listy rzeczy do wyświetlania */
+    Vector2f coords= getGridCoords(index);
+    dot_shapes.push_back(CircleShape(DOT_RADIUS));
+    dot_shapes.back().setPosition(coords.x-DOT_RADIUS, coords.y-DOT_RADIUS);
+    if(player == 1)
+	dot_shapes.back().setFillColor(P1_COLOR);
+    else if(player == 2)
+	dot_shapes.back().setFillColor(P2_COLOR);
+       	
+    return index;
 }

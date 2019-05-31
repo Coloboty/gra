@@ -1,6 +1,8 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+#include <SFML/Graphics.hpp>
+
 #define SCREEN_WIDTH 400
 #define SCREEN_HEIGHT 400
 
@@ -14,5 +16,6 @@
 #define P1_COLOR Color::Red
 #define P2_COLOR Color::Blue
 
+extern sf::Font global_font;
 
 #endif
