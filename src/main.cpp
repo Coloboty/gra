@@ -49,15 +49,6 @@ void visualise(RenderTarget &target, board b, move_state state){
 	target.draw(dots[i]);
 }
 
-void printGameState(move_state test){
-    for(uint i= 0; i < BOARD_SIZE_Y; i++){
-	for(uint j= 0; j < BOARD_SIZE_X; j++){
-	    cout << test.getGridState(Vector2u(j, i)) << "   ";
-	}
-	cout << endl;
-    }
-}
-
 int main(void){
     if(!initText()){
 	cout << "Nie udało się załadować czcionki!" << endl;
@@ -72,50 +63,117 @@ int main(void){
 
 void onePlayerMode(void){
     RenderWindow window(VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "wadowice");
-    board p1, p2, p3;
-    /* Text t; */
+    board plansza;
+    CircleShape kropka(DOT_RADIUS);
+    Color p1_ghost, p2_ghost;
+    bool debug;
+    Vector2u ind, dodana;
+    uint gracz= 1;
     ai papiesz(2);
+    move_state ruch;
     vector<move_state> ruchy;
-    uint iterator;
-    
-    p1.addDot(1, 1);
-    p1.addDot(2, 1);
-    p1.addDot(1, 2);
 
-    ruchy= papiesz.validMoves(p1.getGameState());
-    /* t.setFont(global_font); */
-    /* t.setFillColor(Color::Black); */
-    /* t.setPosition(40, 80); */
-    
-    while(window.isOpen()){
-	Event event;
+    p1_ghost= P1_COLOR;
+    p1_ghost.a= 150;
+    p2_ghost= P2_COLOR;
+    p2_ghost.a= 150;
 
-	while(window.pollEvent(event)){
-	    if(event.type == Event::Closed)
-		window.close();
-	    
+    kropka.setFillColor(p1_ghost);
+    
+    while (window.isOpen())
+    {
+        Event event;
+        while (window.pollEvent(event))
+        {
+            if (event.type == Event::Closed)
+                window.close();
+
 	    if(event.type == Event::KeyReleased){
 		if(event.key.code == Keyboard::Escape)
 		    window.close();
 
-		if(event.key.code == Keyboard::F)
-		    iterator++;
+		if(event.key.code == Keyboard::K){
+		    if(debug) debug= false;
+		    else debug= true;
+		}
 
-		if(iterator >= ruchy.size())
-		    iterator= 0;
+		if(event.key.code == Keyboard::Right && ind.x < BOARD_SIZE_X-1)
+		    ind.x++;
+		
+		if(event.key.code == Keyboard::Left && ind.x > 0)
+		    ind.x--;
 
-		/* t.setString(to_string(papiesz.thonk(ruchy[iterator]))); */
-		cout << "Papiesz myśli: " << papiesz.thonk(ruchy[iterator]) << endl;
+		if(event.key.code == Keyboard::Down && ind.y < BOARD_SIZE_Y-1)
+		    ind.y++;
+		
+		if(event.key.code == Keyboard::Up && ind.y > 0)
+		    ind.y--;
+
+		if(!debug)
+		    ind.y= 0;
+		else{
+
+		    if(event.key.code == Keyboard::C){
+			if(plansza.checkWin(ind))
+			    cout << "wygrana" << endl;
+			else
+			    cout << "brak" << endl;   
+		    }
+
+		    if(event.key.code == Keyboard::R)
+			plansza.addDot(1, ind.x);
+
+		    if(event.key.code == Keyboard::B)
+			plansza.addDot(2, ind.x);
+
+		    if(event.key.code == Keyboard::F){
+			ruch.pos= ind;
+			cout << papiesz.thonk(ruch) << endl;
+		    }
+			
+		}
+		
+		/* -------------- */
+
+		
+		
+		if(event.key.code == Keyboard::Return){
+		    dodana= plansza.addDot(gracz, ind.x);
+		    ruch= plansza.getGameState();
+		    cout << ruch.count(dodana) << endl;
+		    
+		    if(plansza.checkWin(dodana)){
+			cout << "Gracz " << gracz << " wygrywa!" << endl;
+			window.close();
+			return;
+		    }
+		    
+		    if(gracz == 1){
+			gracz= 2;
+			kropka.setFillColor(p2_ghost);
+
+			
+			/* ruch.printState(); */
+			papiesz.minMax(ruch, 5, 2);
+			ind.x= ruch.pos.x;
+		    }
+		    else{
+			gracz= 1;
+			kropka.setFillColor(p1_ghost);
+		    }
+		}
 	    }
-	}
+        }
 
-
-	window.clear();
-	window.draw(p3);
-	visualise(window, p3, ruchy[iterator]);
-	/* window.draw(t); */
-	/* window.draw(p1); */
-	window.display();
+	
+	kropka.setPosition(plansza.getGridCoords(ind).x-kropka.getRadius(), plansza.getGridCoords(ind).y-kropka.getRadius());
+		
+        window.clear();
+	
+	window.draw(plansza);
+	window.draw(kropka);
+	
+        window.display();
     }
 }
 
@@ -180,24 +238,34 @@ void twoPlayerMode(void){
 
 		    if(event.key.code == Keyboard::B)
 			plansza.addDot(2, ind.x);
+
+		    if(event.key.code == Keyboard::F)
+			cout << plansza.getGameState().getGridState(ind) << endl;
+
+		    if(event.key.code == Keyboard::G)
+			plansza.getGameState().setGridState(1, ind);
 		}
 		
 		/* -------------- */
 		
 		if(event.key.code == Keyboard::Return){
-		    dodana= plansza.addDot(gracz, ind.x);
-		    if(plansza.checkWin(dodana)){
-			cout << "Gracz " << gracz << " wygrywa!" << endl;
-			window.close();
-		    }
+		    if(plansza.isValidMove(ind.x)){
+			dodana= plansza.addDot(gracz, ind.x);
+			/* cout << dodana.x << "   " << dodana.y << endl; */
 		    
-		    if(gracz == 1){
-			gracz= 2;
-			kropka.setFillColor(p2_ghost);
-		    }
-		    else{
-			gracz= 1;
-			kropka.setFillColor(p1_ghost);
+			if(plansza.checkWin(dodana)){
+			    cout << "Gracz " << gracz << " wygrywa!" << endl;
+			    window.close();
+			}
+		    
+			if(gracz == 1){
+			    gracz= 2;
+			    kropka.setFillColor(p2_ghost);
+			}
+			else{
+			    gracz= 1;
+			    kropka.setFillColor(p1_ghost);
+			}
 		    }
 		}
 	    }

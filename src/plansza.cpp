@@ -43,10 +43,6 @@ Vector2f board::getGridCoords(Vector2u index){
 
 Vector2u board::addDot(uint player, uint row){
     Vector2u index= state.addDot(player, row);
-    /* Sprawdź, czy ruch jest dozwolony */
-    if(!state.isValidMove(index.x))
-	/* return Vector2u(BOARD_SIZE_X, BOARD_SIZE_Y); */
-	return Vector2u(-1, -1);
 	
     /* Dodaj graficzną reprezentację do listy rzeczy do wyświetlania */
     Vector2f coords= getGridCoords(index);

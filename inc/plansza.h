@@ -12,19 +12,21 @@ using namespace sf;
 
 class game_state{
     array< array<uint, BOARD_SIZE_X>, BOARD_SIZE_Y> grid;
+    /* vector< vector<uint> > grid; */
 public:
     game_state(){
-	for(uint i= 0; i < BOARD_SIZE_X; i++)
+	for(uint i= 0; i < BOARD_SIZE_X; i++){
 	    for(uint j= 0; j < BOARD_SIZE_Y; j++)
 		grid[i][j]= 0;
+	}
     }
 
     friend class move_state;
     void setGridState(uint state, Vector2u index) {grid[index.x][index.y]= state;}
-    uint getGridState(Vector2u index) {return grid[index.x][index.y];}
-    bool exists(Vector2u index) {return !(getGridState(index) == 0);}
+    uint getGridState(Vector2u index) const {return grid[index.x][index.y];}
+    bool exists(Vector2u index) const {return !(getGridState(index) == 0);}
 
-    bool isValidMove(uint row){
+    bool isValidMove(uint row) const{
 	if(row >= BOARD_SIZE_X)
 	    return false;
 
@@ -38,22 +40,24 @@ public:
     Vector2u addDot(uint player, uint row){
 	Vector2u index;
 	index.x= row;
+	index.y= 0;
 	/* 'spadaj' kropkę z góry na dół */
-	for(uint i= 0; i <= BOARD_SIZE_X-1; i++){
-	    if(exists(Vector2u(row, i+1)) || i == BOARD_SIZE_X-1){
+	/* cout << index.y << endl; */
+	for(uint i= 0; i <= BOARD_SIZE_Y-1; i++){
+	    if(exists(Vector2u(row, i+1)) || i == BOARD_SIZE_Y-1){
 		index.y= i;
 		break;
 	    }
 	}
 
 	setGridState(player, index);
-
+	/* cout << index.x << "  " << index.y << endl; */
 	return index;
     }
     
     /* Liczy, ile kropek w danym kierunku */
-    uint chase(uint player, Vector2u start, Vector2u dir){
-	uint count= 0;
+    int chase(uint player, Vector2u start, Vector2u dir){
+	int count= 0;
 	Vector2u check= start;
 	check.x+= dir.x;
 	check.y+= dir.y;
@@ -71,10 +75,10 @@ public:
 	return count;
     }
 
-    uint count(Vector2u index){
+    int count(Vector2u index){
 	uint player= getGridState(index);
 	if(player != 1 && player != 2)
-	    return false;
+	    return 0;
 
 	/* Przygotowanie do szukania sąsiadów */
 	int xstart, xstop, ystart, ystop;
@@ -92,7 +96,7 @@ public:
 
 	/* Szukaj dookoła podanej pozycji */
 	Vector2u sindex;
-	uint total= 0;
+	int total= 0;
 	for(int i= xstart; i <= xstop; i++){
 	    sindex.x= index.x + i;
 	    for(int j= ystart; j <=ystop; j++){
@@ -140,8 +144,9 @@ public:
     ~board() {}
 
     Vector2f getGridCoords(Vector2u index);
-    bool checkWin(Vector2u index) {return (state.count(index) > WIN_CONDITION);}
+    bool checkWin(Vector2u index) {return (state.count(index) >= WIN_CONDITION);}
     bool doesExist(Vector2u index) {return state.exists(index);}
+    bool isValidMove(uint row) {return state.isValidMove(row);}
     Vector2u addDot(uint player, uint row);
     game_state &getGameState(void) {return state;}
     
