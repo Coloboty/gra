@@ -3,7 +3,9 @@
 
 #include "config.h"
 #include "plansza.h"
-#include <cstring>
+#include <string>
+#include <cstdlib>
+/* #include <time> */
 #include <SFML/Graphics.hpp>
 #include <stack>
 #include <limits>
@@ -74,7 +76,7 @@ public:
 	if(state.checkWin())
 	    gain= WIN;
 	else
-	    gain= state.count(state.pos) * 5;
+	    gain= state.count(state.pos) * 10;
 
 	if(state.getGridState(state.pos) == me){
 	    /* cout << "gain " << gain << endl; */
@@ -82,7 +84,7 @@ public:
 	}
 	else{
 	    /* cout << "gain " << -gain << endl; */
-	    return -gain;
+	    return gain * (-1);
 	}
     }
 
@@ -92,7 +94,8 @@ public:
 	
 	if(depth == 0 || state.checkWin()){
 	    /* state.printState(); */
-	    return thonk(state) + depth;
+	    srand(time(NULL));
+	    return thonk(state) + rand()%6;
 	}
 
 	/* Gracz maksymalizujący (ja) */

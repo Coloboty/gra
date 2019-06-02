@@ -80,37 +80,21 @@ public:
 	if(player != 1 && player != 2)
 	    return 0;
 
-	/* Przygotowanie do szukania sąsiadów */
-	int xstart, xstop, ystart, ystop;
-	if(index.x > 0) xstart= -1;
-	else xstart= 0;
-	
-	if(index.x < BOARD_SIZE_X-1) xstop= 1;
-	else xstop= 0;
+	int h, v, dleft, dright;
 
-	if(index.y > 0) ystart= -1;
-	else ystart= 0;
+	h= chase(player, index, Vector2u(-1, 0));
+	h+= chase(player, index, Vector2u(1, 0));
 
-	if(index.y < BOARD_SIZE_Y-1) ystop= 1;
-	else ystop= 0;
+	v= chase(player, index, Vector2u(0, -1));
+	v+= chase(player, index, Vector2u(0, 1));
 
-	/* Szukaj dookoła podanej pozycji */
-	Vector2u sindex;
-	int total= 0;
-	for(int i= xstart; i <= xstop; i++){
-	    sindex.x= index.x + i;
-	    for(int j= ystart; j <=ystop; j++){
-		sindex.y= index.y + j;
-		/* Jeśli znaleziono sąsiada takiego samego koloru */
-		if(getGridState(sindex) == player && (i != 0 || j != 0)){
-		    /* Popatrz w jego stronę i w przeciwną i dodaj liczbę kropek*/
-		    total= 1 + chase(player, index, Vector2u(i, j));
-		    total+= chase(player, index, Vector2u(i*(-1), j*(-1)));
-		}
-	    }
-	}
+	dleft= chase(player, index, Vector2u(-1, 1));
+	dleft+= chase(player, index, Vector2u(1, -1));
 
-	return total;
+	dright= chase(player, index, Vector2u(1, 1));
+	dright+= chase(player, index, Vector2u(-1, -1));
+
+	return max({h, v, dleft, dright}) + 1;
     }
 };
 
