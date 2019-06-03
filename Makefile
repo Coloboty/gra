@@ -13,10 +13,10 @@ obj/main.o: src/main.cpp inc/f_pomocnicze.h inc/plansza.h inc/ai.h inc/config.h
 obj/f_pomocnicze.o: src/f_pomocnicze.cpp inc/f_pomocnicze.h
 	g++ -c src/f_pomocnicze.cpp -o obj/f_pomocnicze.o $(CFLAGS)
 
-obj/plansza.o: src/plansza.cpp inc/plansza.h inc/f_pomocnicze.h inc/config.h inc/union_find.hpp
+obj/plansza.o: src/plansza.cpp inc/plansza.h inc/f_pomocnicze.h inc/config.h
 	g++ -c src/plansza.cpp -o obj/plansza.o $(CFLAGS)
 
-obj/ai.o: src/ai.cpp inc/ai.h inc/f_pomocnicze.h inc/config.h inc/union_find.hpp
+obj/ai.o: src/ai.cpp inc/ai.h inc/f_pomocnicze.h inc/config.h
 	g++ -c src/ai.cpp -o obj/ai.o $(CFLAGS)
 
 run: main

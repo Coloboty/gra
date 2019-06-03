@@ -5,111 +5,58 @@
 #include <iostream>
 #include "config.h"
 #include "f_pomocnicze.h"
-/* #include "union_find.hpp" */
 
 using namespace std;
 using namespace sf;
 
+/* ---------------- */
+/* KLASA GAME_STATE */
+/* ---------------- */
+
+/* Reprezentuje stan rozgrywki (pozycje/ilość kropek na planszy) */
 class game_state{
+    /* Pozycja kropek na planszy */
     array< array<uint, BOARD_SIZE_X>, BOARD_SIZE_Y> grid;
-    /* vector< vector<uint> > grid; */
 public:
+    /* Pozycja ostatniej wrzuconej kropki */
+    Vector2u pos;
+    
     game_state(){
+	pos= Vector2u(0, 0);
+	
 	for(uint i= 0; i < BOARD_SIZE_X; i++){
 	    for(uint j= 0; j < BOARD_SIZE_Y; j++)
 		grid[i][j]= 0;
 	}
     }
 
-    friend class move_state;
+    void operator =(game_state &s) {grid= s.grid;}
+    
     void setGridState(uint state, Vector2u index) {grid[index.x][index.y]= state;}
     uint getGridState(Vector2u index) const {return grid[index.x][index.y];}
+    void printState(void) const;
     bool exists(Vector2u index) const {return !(getGridState(index) == 0);}
-
-    bool isValidMove(uint row) const{
-	if(row >= BOARD_SIZE_X)
-	    return false;
-
-	if(exists(Vector2u(row, 0))){
-	    return false;
-	}
-
-	return true;
-    }    
+    bool isValidMove(uint row) const;
+    bool checkWin(void) const {return count(pos, getGridState(pos)) >= 4;}
+    int chase(uint player, Vector2u start, Vector2u dir) const;
+    int count(Vector2u index, uint player) const;
     
-    Vector2u addDot(uint player, uint row){
-	Vector2u index;
-	index.x= row;
-	index.y= 0;
-	/* 'spadaj' kropkę z góry na dół */
-	/* cout << index.y << endl; */
-	for(uint i= 0; i <= BOARD_SIZE_Y-1; i++){
-	    if(exists(Vector2u(row, i+1)) || i == BOARD_SIZE_Y-1){
-		index.y= i;
-		break;
-	    }
-	}
-
-	setGridState(player, index);
-	/* cout << index.x << "  " << index.y << endl; */
-	return index;
-    }
-    
-    /* Liczy, ile kropek w danym kierunku */
-    int chase(uint player, Vector2u start, Vector2u dir){
-	int count= 0;
-	Vector2u check= start;
-	check.x+= dir.x;
-	check.y+= dir.y;
-	if(check.x >= BOARD_SIZE_X || check.y >= BOARD_SIZE_Y)
-	    return 0;
-	
-	while(getGridState(check) == player){
-	    count++;
-	    check.x+= dir.x;
-	    check.y+= dir.y;
-	    if(check.x >= BOARD_SIZE_X || check.y >= BOARD_SIZE_Y)
-		return count;
-	}
-
-	return count;
-    }
-
-    int count(Vector2u index, uint player){
-	/* uint player= getGridState(index); */
-	if(player != 1 && player != 2)
-	    return 0;
-
-	int h, v, dleft, dright;
-
-	h= chase(player, index, Vector2u(-1, 0));
-	h+= chase(player, index, Vector2u(1, 0));
-
-	v= chase(player, index, Vector2u(0, -1));
-	v+= chase(player, index, Vector2u(0, 1));
-
-	dleft= chase(player, index, Vector2u(-1, 1));
-	dleft+= chase(player, index, Vector2u(1, -1));
-
-	dright= chase(player, index, Vector2u(1, 1));
-	dright+= chase(player, index, Vector2u(-1, -1));
-
-	return max({h, v, dleft, dright}) + 1;
-    }
+    Vector2u addDot(uint player, uint row);
 };
 
-/* -------------------------------------------------------------- */
+/* ----------- */
+/* KLASA BOARD */
+/* ----------- */
 
+/* Reprezentuje graficzną stronę planszy */
 class board : public Drawable, public Transformable{
-    Vector2f screen_size;
+    Vector2f screen_size, grid_spacing;
     Vector2u grid_size;
-    vector<LineShape> grid_lines;
-    Vector2f grid_spacing;
     Color grid_color, board_color;
     uint grid_thickness;
-    game_state state;
-    
+
     vector<CircleShape> dot_shapes;
+    vector<LineShape> grid_lines;
     
     virtual void draw(RenderTarget &target, RenderStates states) const{
 	RectangleShape background(screen_size);
@@ -124,16 +71,15 @@ class board : public Drawable, public Transformable{
     }
     
 public:
+    game_state state;
+    
     board();
-    ~board() {}
 
     Vector2f getGridCoords(Vector2u index);
-    bool checkWin(Vector2u index) {return (state.count(index, state.getGridState(index)) >= WIN_CONDITION);}
+    bool checkWin(void) {return state.checkWin();}
     bool doesExist(Vector2u index) {return state.exists(index);}
     bool isValidMove(uint row) {return state.isValidMove(row);}
     Vector2u addDot(uint player, uint row);
-    game_state &getGameState(void) {return state;}
-    
 };
 
 #endif

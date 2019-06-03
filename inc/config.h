@@ -16,6 +16,4 @@
 #define P1_COLOR Color::Red
 #define P2_COLOR Color::Blue
 
-extern sf::Font global_font;
-
 #endif

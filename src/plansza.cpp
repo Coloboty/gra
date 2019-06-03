@@ -1,5 +1,92 @@
 #include "plansza.h"
 
+/* ----------------------- */
+/* METODY KLASY GAME_STATE */
+/* ----------------------- */
+
+bool game_state::isValidMove(uint row) const{
+    if(row >= BOARD_SIZE_X)
+	return false;
+
+    if(exists(Vector2u(row, 0))){
+	return false;
+    }
+
+    return true;
+}
+
+void game_state::printState(void) const{
+    for(uint i= 0; i < BOARD_SIZE_Y; i++){
+	for(uint j= 0; j < BOARD_SIZE_X; j++){
+	    cout << getGridState(Vector2u(j, i)) << "   ";
+	}
+	cout << endl;
+    }
+}
+
+Vector2u game_state::addDot(uint player, uint row){
+    Vector2u index(row, 0);
+	
+    /* 'spadaj' kropkę z góry na dół */
+    for(uint i= 0; i <= BOARD_SIZE_Y-1; i++){
+	if(exists(Vector2u(row, i+1)) || i == BOARD_SIZE_Y-1){
+	    index.y= i;
+	    break;
+	}
+    }
+
+    setGridState(player, index);
+    pos= index;
+    
+    return index;
+}
+
+int game_state::chase(uint player, Vector2u start, Vector2u dir) const{
+    int count= 0;
+    Vector2u check= start;
+    check.x+= dir.x;
+    check.y+= dir.y;
+	
+    if(check.x >= BOARD_SIZE_X || check.y >= BOARD_SIZE_Y)
+	return 0;
+	
+    while(getGridState(check) == player){
+	count++;
+	check.x+= dir.x;
+	check.y+= dir.y;
+	if(check.x >= BOARD_SIZE_X || check.y >= BOARD_SIZE_Y)
+	    return count;
+    }
+
+    return count;
+}
+
+int game_state::count(Vector2u index, uint player) const{
+    if(player != 1 && player != 2)
+	return 0;
+
+    int h, v, dleft, dright;
+
+    h= chase(player, index, Vector2u(-1, 0));
+    h+= chase(player, index, Vector2u(1, 0));
+
+    v= chase(player, index, Vector2u(0, -1));
+    v+= chase(player, index, Vector2u(0, 1));
+
+    dleft= chase(player, index, Vector2u(-1, 1));
+    dleft+= chase(player, index, Vector2u(1, -1));
+
+    dright= chase(player, index, Vector2u(1, 1));
+    dright+= chase(player, index, Vector2u(-1, -1));
+
+    return max({h, v, dleft, dright}) + 1;
+}
+
+
+/* ------------------ */
+/* METODY KLASY BOARD */
+/* ------------------ */
+
 board::board(){
     grid_size.x= BOARD_SIZE_X-1;
     grid_size.y= BOARD_SIZE_Y-1;
