@@ -30,7 +30,7 @@ public:
     void operator =(game_state &s) {grid= s.grid;}
     void operator =(move_state &s) {grid= s.grid;}
 
-    bool checkWin(void) {return count(pos) >= 4;}
+    bool checkWin(void) {return count(pos, getGridState(pos)) >= 4;}
 
     void printState(void){
 	for(uint i= 0; i < BOARD_SIZE_Y; i++){
@@ -72,13 +72,14 @@ public:
 
     int thonk(move_state &state){
 	int gain= 0;
+	uint p= state.getGridState(state.pos);
 
 	if(state.checkWin())
 	    gain= WIN;
 	else
-	    gain= state.count(state.pos) * 10;
+	    gain= state.count(state.pos, p) * 10;
 
-	if(state.getGridState(state.pos) == me){
+	if(p == me){
 	    /* cout << "gain " << gain << endl; */
 	    return gain;
 	}

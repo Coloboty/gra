@@ -38,7 +38,6 @@ void onePlayerMode(void){
     Color p1_ghost, p2_ghost;
     bool end= false;
     Vector2u ind, dodana;
-    uint gracz= 1;
     ai papiesz(2);
     move_state ruch;
 
@@ -85,13 +84,14 @@ void onePlayerMode(void){
 			    cout << "Gracz " << 1 << " wygrywa!" << endl;
 			    end= true;
 			}
+			else{
+			    papiesz.minMax(ruch, 5, 2);
+			    dodana= plansza.addDot(2, ruch.pos.x);
 
-			papiesz.minMax(ruch, 5, 2);
-			dodana= plansza.addDot(2, ruch.pos.x);
-
-			if(plansza.checkWin(dodana)){
-			    cout << "Gracz " << 2 << " wygrywa!" << endl;
-			    end= true;
+			    if(plansza.checkWin(dodana)){
+				cout << "Gracz " << 2 << " wygrywa!" << endl;
+				end= true;
+			    }
 			}
 		    }
 		}

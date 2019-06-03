@@ -75,8 +75,8 @@ public:
 	return count;
     }
 
-    int count(Vector2u index){
-	uint player= getGridState(index);
+    int count(Vector2u index, uint player){
+	/* uint player= getGridState(index); */
 	if(player != 1 && player != 2)
 	    return 0;
 
@@ -128,7 +128,7 @@ public:
     ~board() {}
 
     Vector2f getGridCoords(Vector2u index);
-    bool checkWin(Vector2u index) {return (state.count(index) >= WIN_CONDITION);}
+    bool checkWin(Vector2u index) {return (state.count(index, state.getGridState(index)) >= WIN_CONDITION);}
     bool doesExist(Vector2u index) {return state.exists(index);}
     bool isValidMove(uint row) {return state.isValidMove(row);}
     Vector2u addDot(uint player, uint row);
