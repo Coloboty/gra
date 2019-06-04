@@ -38,8 +38,10 @@ public:
     bool exists(Vector2u index) const {return !(getGridState(index) == 0);}
     bool isValidMove(uint row) const;
     bool checkWin(void) const {return count(pos, getGridState(pos)) >= 4;}
+    bool checkWin(Vector2u index) const {return count(index, getGridState(index)) >= 4;}
     int chase(uint player, Vector2u start, Vector2u dir) const;
     int count(Vector2u index, uint player) const;
+    int countAll(Vector2u index, uint player) const;
     
     Vector2u addDot(uint player, uint row);
 };

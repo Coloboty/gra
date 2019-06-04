@@ -7,17 +7,19 @@
 #include <cstdlib>
 #include <SFML/Graphics.hpp>
 
-#define FAIL -1000
-#define WIN 1000
+#define WIN 2147483647
+#define FAIL -WIN
+
 
 using namespace std;
 using namespace sf;
 
 class ai{
-    uint me, opponent;
+    uint me, opponent, idepth;
 public:
-    ai(uint _me){
+    ai(uint _me, uint _d){
 	me= _me;
+	idepth= _d;
 	if(me == 1) opponent= 2;
 	else opponent= 1;
 
@@ -25,7 +27,8 @@ public:
     }
 
     int thonk(const game_state &state) const;
-    int minMax(game_state &state, uint depth, uint p);
+    int minMax(game_state &state) {return minMax(state, idepth, FAIL, WIN, me);}
+    int minMax(game_state &state, uint depth, int alpha, int beta, uint p);
     vector<game_state> validMoves(const game_state &current, uint player) const;
 };
 

@@ -82,6 +82,27 @@ int game_state::count(Vector2u index, uint player) const{
     return max({h, v, dleft, dright}) + 1;
 }
 
+int game_state::countAll(Vector2u index, uint player) const{
+    if(player != 1 && player != 2)
+	return 0;
+
+    int h, v, dleft, dright;
+
+    h= chase(player, index, Vector2u(-1, 0));
+    h+= chase(player, index, Vector2u(1, 0));
+
+    v= chase(player, index, Vector2u(0, -1));
+    v+= chase(player, index, Vector2u(0, 1));
+
+    dleft= chase(player, index, Vector2u(-1, 1));
+    dleft+= chase(player, index, Vector2u(1, -1));
+
+    dright= chase(player, index, Vector2u(1, 1));
+    dright+= chase(player, index, Vector2u(-1, -1));
+
+    return h+v+dleft+dright + 1;
+}
+
 
 /* ------------------ */
 /* METODY KLASY BOARD */

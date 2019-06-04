@@ -57,7 +57,7 @@ void onePlayerMode(char *name, uint depth){
     Color p1_ghost;
     bool end= false;
     Vector2u ind, dodana;
-    ai pepe(2);
+    ai pepe(2, depth);
     game_state ruch;
 
     p1_ghost= P1_COLOR;
@@ -83,13 +83,6 @@ void onePlayerMode(char *name, uint depth){
 		
 		    if(event.key.code == Keyboard::Left && ind.x > 0)
 			ind.x--;
-
-		    /* if(event.key.code == Keyboard::Down && ind.y < BOARD_SIZE_Y-1) */
-		    /* ind.y++; */
-		
-		    /* if(event.key.code == Keyboard::Up && ind.y > 0) */
-		    /* ind.y--; */
-			
 		
 		    /* -------------- */
 
@@ -104,7 +97,7 @@ void onePlayerMode(char *name, uint depth){
 			    end= true;
 			}
 			else{
-			    pepe.minMax(ruch, depth, 2);
+			    pepe.minMax(ruch);
 			    dodana= plansza.addDot(2, ruch.pos.x);
 
 			    if(plansza.checkWin()){
@@ -161,12 +154,6 @@ void twoPlayerMode(char *name){
 		
 		if(event.key.code == Keyboard::Left && ind.x > 0)
 		    ind.x--;
-
-		/* if(event.key.code == Keyboard::Down && ind.y < BOARD_SIZE_Y-1) */
-		    /* ind.y++; */
-		
-		/* if(event.key.code == Keyboard::Up && ind.y > 0) */
-		    /* ind.y--; */
 		
 		/* -------------- */
 		
